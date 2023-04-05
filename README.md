@@ -21,6 +21,11 @@ Additionally, the utility can export all folder rulebases into CSV.
 * OAUTH Service Account Credentials file
 
 ### Currently Tested and Supported Configuration Output Items
+* IAM
+  * access_policies
+  * permissions
+  * roles
+  * service_accounts
 * Identity
   * authentication_profiles
   * local_users
