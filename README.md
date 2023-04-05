@@ -75,8 +75,8 @@ Currently, no CLI has been added to this project, so all parameters need to be a
 * folders = ['Shared', 'Remote Networks', 'Mobile Users', 'Mobile Users Explicit Proxy']
 
 ```
-git clone https://github.com/ancoleman/prisma-access-rule-exporter
-cd prisma-access-rule-exporter
+git clone https://github.com/ancoleman/prisma-access-config-exporter
+cd prisma-access-config-exporter
 pip install -r requirements.txt
 ```
 
