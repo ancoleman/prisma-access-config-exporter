@@ -7,6 +7,15 @@
 Simple Export Script for Palo Alto Networks SASE Tenant Configuration to JSON file output.
 Additionally, the utility can export all folder rulebases into CSV.
 
+
+## Use Cases
+* Exporting configuration for auditing purposes
+* Exporting configuration for moving configuration between different CSP accounts
+* What it is NOT used for:
+  * Exporting configuration for backup purposes
+  * Exporting configuration for disaster recovery purposes
+
+
 ### Requirements
 * Python 3.9+
 * OAUTH Service Account Credentials file
