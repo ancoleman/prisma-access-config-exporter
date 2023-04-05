@@ -4,7 +4,7 @@
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) [![support](https://img.shields.io/badge/Support%20Level-Community-yellowgreen)](./SUPPORT.md)
 
 ## Description
-Simple Export Script to Palo Alto Networks SASE Tenant Configuration to JSON file output.
+Simple Export Script for Palo Alto Networks SASE Tenant Configuration to JSON file output.
 Additionally, the utility can export all folder rulebases into CSV.
 
 ### Requirements
