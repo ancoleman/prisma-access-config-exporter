@@ -57,6 +57,18 @@ Additionally, the utility can export all folder rulebases into CSV.
   * instances
   * licenses
 
+#### How to get OAUTH Service Account Credentials
+1. Login to https://apps.paloaltonetworks.com
+2. Click on the "Common Services" tab in the top navigation bar and select "Identity and Access"
+3. Choose the tenant you want to export the configuration from
+4. Click the "add" button in the top right corner of the dialog box
+5. Select Identity Type and choose "Service Account" and provide the necessary information and then click "next"
+6. Download the CSV credentials file, follow the below example to create the config.yaml file with the credentials
+7. Click next and Assign Roles, Choose "All Apps and Services" with the role of "Auditor". Click "submit"
+
+**NOTE:** The service account will need to be assigned at minimum "Auditor" role to be able to export the configuration.
+You can assign it more permissive roles, but it's not required for the export.
+
 #### Example Credentials config.yaml
 Create the config.yaml file in the root directory.
 ```yaml
