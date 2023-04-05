@@ -1,1 +1,1 @@
-import rule_exporter
+import config_exporter
