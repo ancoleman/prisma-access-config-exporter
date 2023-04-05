@@ -1,5 +1,11 @@
 import panapi
-from panapi.config import security, identity, objects, network, subscription
+from panapi.config import \
+    iam, \
+    security, \
+    identity, \
+    objects, \
+    network, \
+    subscription
 import inspect
 import time
 import json
@@ -146,7 +152,7 @@ def get_configuration(session, folders):
 
     """
     excluded_objects = ["Application", "Certificate"]
-    inspect_objects = [objects, network, security, identity, subscription]
+    inspect_objects = [iam, objects, network, security, identity, subscription]
     config = {'predefined': {}}
 
     def get_items(session, folder, key, obj):
