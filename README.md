@@ -9,8 +9,10 @@ Additionally, the utility can export all folder rulebases into CSV.
 
 
 ### Use Cases
-* Exporting configuration for auditing purposes
-* Exporting configuration for moving configuration between different CSP accounts
+* Exporting configuration
+  * For auditing purposes 
+  * For moving configuration between different CSP accounts
+  * Generating Documentation
 * What it is NOT used for:
   * Exporting configuration for backup purposes
   * Exporting configuration for disaster recovery purposes
