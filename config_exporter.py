@@ -5,7 +5,8 @@ from panapi.config import \
     identity, \
     objects, \
     network, \
-    subscription
+    subscription, \
+    mobile
 import inspect
 import time
 import json
@@ -152,7 +153,7 @@ def get_configuration(session, folders):
 
     """
     excluded_objects = ["Application", "Certificate"]
-    inspect_objects = [iam, objects, network, security, identity, subscription]
+    inspect_objects = [mobile, iam, objects, network, security, identity, subscription]
     config = {'predefined': {}}
 
     def get_items(session, folder, key, obj):
@@ -274,7 +275,7 @@ def get_configuration(session, folders):
                         if hasattr(obj, '_endpoint'):
                             endpoint = str(obj._endpoint)
                             logger.info(f'Acquired endpoint: {endpoint}')
-                            key_name = (endpoint.split("v1/")[1]).replace("-", "_")
+                            key_name = (endpoint.rsplit("/", 1)[1]).replace("-", "_")
                             if hasattr(obj, '_required'):
                                 if folder in obj._required:
                                     logger.info(f'Getting required items for: {key_name} for folder: {folder}')

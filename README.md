@@ -32,6 +32,11 @@ Additionally, the utility can export all folder rulebases into CSV.
   * authentication_profiles
   * local_users
   * saml_server_profiles
+* Mobile
+  * agent_profiles
+  * authentication_settings
+  * tunnel_profiles
+  * global_settings
 * Network
   * bandwidth_allocations
   * internal_dns_servers
