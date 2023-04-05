@@ -6,9 +6,9 @@ import json
 import logging
 import csv
 
-__author__ = "Anton Coleman"
-__copyright__ = "Copyright 2023, Prisma SASE Automation"
-__credits__ = ["Robert Hagen"]
+__author__ = "Palo Alto Networks"
+__copyright__ = "Copyright 2023, Palo Alto Networks"
+__credits__ = ["Robert Hagen", "Anton Coleman"]
 __license__ = "MIT"
 __version__ = ".1"
 __maintainer__ = "Anton Coleman"
