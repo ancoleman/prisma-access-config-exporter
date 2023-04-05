@@ -1,4 +1,4 @@
-# prisma-access-rule-exporter
+# prisma-access-config-exporter
 
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) [![support](https://img.shields.io/badge/Support%20Level-Community-yellowgreen)](./SUPPORT.md)
