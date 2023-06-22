@@ -1,7 +1,7 @@
 import config_exporter
 import logging
 
-folders = ['Shared', 'Remote Networks', 'Mobile Users', 'Mobile Users Explicit Proxy']
+folders = ['Shared', 'Service Connections', 'Remote Networks', 'Mobile Users', 'Mobile Users Explicit Proxy']
 
 #################
 # Setup Logging

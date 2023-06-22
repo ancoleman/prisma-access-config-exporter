@@ -88,7 +88,7 @@ class SharedInfrastructureSetting(PanObject):
 
 class ServiceConnection(PanObject):
     """Service Connections"""
-    _required = ['Services Connections']
+    _required = ['Service Connections']
     _endpoint = f'{sase_path}/{api_version}/service-connections'
 
 
@@ -100,3 +100,8 @@ class InternalDNSServer(PanObject):
 class TrafficSteeringRule(PanObject):
     """Traffic steering rules"""
     _endpoint = f'{sase_path}/{api_version}/traffic-steering-rules'
+
+
+class BgpRouting(PanObject):
+    """SC BGP Routing Configuration"""
+    _endpoint = f'{sase_path}/{api_version}/bgp-routing'

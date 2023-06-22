@@ -33,3 +33,9 @@ class TunnelProfiles(PanObject):
     """A SASE Mobile-Agent Tunnel Profiles"""
     _required = ['Mobile Users']
     _endpoint = f'{sase_path}/{api_version}/mobile-agent/tunnel-profiles'
+
+
+class Locations(PanObject):
+    """A SASE Mobile-Agent Locations"""
+    _required = ['Mobile Users']
+    _endpoint = f'{sase_path}/{api_version}/mobile-agent/locations'
