@@ -6,8 +6,7 @@ from panapi.config import \
     objects, \
     network, \
     subscription, \
-    mobile, \
-    tenancy
+    mobile
 import inspect
 import time
 import json
@@ -54,6 +53,7 @@ def create_session():
         logger.info(f'Generating new session')
         session = panapi.PanApiSession()
         session.authenticate()
+        print(session.access_token)
         logger.info(f'Session Generated')
         time.sleep(1)
         return session
@@ -154,7 +154,7 @@ def get_configuration(session, folders):
 
     """
     excluded_objects = ["Application", "Certificate"]
-    inspect_objects = [mobile, iam, objects, network, security, identity, subscription, tenancy]
+    inspect_objects = [mobile, iam, objects, network, security, identity, subscription]
     config = {'predefined': {}}
 
     def get_items(session, folder, key, obj):
@@ -193,7 +193,7 @@ def get_configuration(session, folders):
                             if item.folder == 'predefined':
                                 logger.debug(f'Determined {item} is predefined')
                                 predefined.append(item.payload)
-                            elif item.folder == 'Shared':
+                            if item.folder == 'Shared':
                                 logger.debug(f'Determined {item} is shared')
                                 shared.append(item.payload)
                             else:
@@ -228,7 +228,7 @@ def get_configuration(session, folders):
                     logger.warn(f'Nothing to retrieve for {key} at position: {position}')
                     unpacked = "Not Found"
             return unpacked
-        elif hasattr(obj, '_no_folder'):
+        if hasattr(obj, '_no_folder'):
             items = obj(no_folder=True)
             item_list = items.list(session)
             if item_list is not None:
@@ -281,14 +281,23 @@ def get_configuration(session, folders):
                                 if folder in obj._required:
                                     logger.info(f'Getting required items for: {key_name} for folder: {folder}')
                                     items = get_items(session, folder, key_name, obj)
+                                    # if key_name == "service_connections" and folder == "Service Connections":
+                                    #     print(items)
+                                    #     exit()
                                     if match_folder(folder, items):
                                         config[folder][section].update({key_name: items[folder]})
+                                    elif match_folder('predefined', items):
+                                        if key_name not in config['predefined'][section]:
+                                            config['predefined'][section].update({key_name: items['predefined']})
+                                        else:
+                                            continue
+                                    elif match_folder('Shared', items):
+                                        if key_name not in config['Shared'][section] and items is not None:
+                                            config['Shared'][section].update({key_name: items['Shared']})
+                                        else:
+                                            continue
                                     else:
-                                        if match_folder('predefined', items):
-                                            if key_name not in config['predefined'][section]:
-                                                config['predefined'][section].update({key_name: items['predefined']})
-                                            else:
-                                                continue
+                                        continue
                             else:
                                 logger.info(f'Getting non required items for: {key_name}')
                                 items = get_items(session, folder, key_name, obj)
