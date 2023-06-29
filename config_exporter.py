@@ -6,6 +6,7 @@ from panapi.config import \
     objects, \
     network, \
     subscription, \
+    tenancy, \
     mobile
 import inspect
 import time
@@ -154,7 +155,7 @@ def get_configuration(session, folders):
 
     """
     excluded_objects = ["Application", "Certificate"]
-    inspect_objects = [mobile, iam, objects, network, security, identity, subscription]
+    inspect_objects = [mobile, iam, objects, network, security, identity, subscription, tenancy]
     config = {'predefined': {}}
 
     def get_items(session, folder, key, obj):
@@ -190,7 +191,7 @@ def get_configuration(session, folders):
                         logger.debug(f'Checking if {item} has a folder attribute')
                         if hasattr(item, 'folder'):
                             logger.debug(f'Checking if {item} folder is predefined')
-                            if item.folder == 'predefined':
+                            if item.folder == 'All':
                                 logger.debug(f'Determined {item} is predefined')
                                 predefined.append(item.payload)
                             if item.folder == 'Shared':
