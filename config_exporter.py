@@ -191,7 +191,7 @@ def get_configuration(session, folders):
                         logger.debug(f'Checking if {item} has a folder attribute')
                         if hasattr(item, 'folder'):
                             logger.debug(f'Checking if {item} folder is predefined')
-                            if item.folder == 'All':
+                            if item.folder == 'predefined':
                                 logger.debug(f'Determined {item} is predefined')
                                 predefined.append(item.payload)
                             if item.folder == 'Shared':
