@@ -1,3 +1,13 @@
+import atexit
+import csv
+import inspect
+import json
+import logging
+import os
+import signal
+import sys
+import time
+import click
 import panapi
 from panapi.config import \
     iam, \
@@ -6,22 +16,17 @@ from panapi.config import \
     objects, \
     network, \
     subscription, \
-    mobile, \
-    tenancy
-import inspect
-import time
-import json
-import logging
-import csv
+    mobile
 
 __author__ = "Palo Alto Networks"
 __copyright__ = "Copyright 2023, Palo Alto Networks"
 __credits__ = ["Robert Hagen", "Anton Coleman"]
 __license__ = "MIT"
-__version__ = ".1"
+__version__ = ".2"
 __maintainer__ = "Anton Coleman"
 __email__ = "acoleman@paloaltonetworks.com"
 __status__ = "Community"
+
 
 # TODO Add Exception Handling
 
@@ -41,7 +46,8 @@ def setup_logger(logger_name, log_file, file_level=logging.DEBUG, stream_level=l
     return l
 
 
-logger = ""
+logger = setup_logger('config_logger', 'config_exporter.log', file_level=logging.DEBUG,
+                      stream_level=logging.INFO)
 
 
 def create_session():
@@ -60,59 +66,6 @@ def create_session():
     except Exception as e:
         logger.critical(f'Failed with exception: {e}')
         return f'Failed with exception: {e}'
-
-
-def get_rules(session, folders, rule_type='security'):
-    """
-
-    Args:
-        session: Session object from create_session() function
-        folders: List of Prisma Access folders to cycle through
-        rule_type: security, decrypt, auth
-
-    Returns:
-
-    """
-    # Stages Empty Dictionary for Rules
-    rules_config = {}
-    # Loops through each folder
-    for folder in folders:
-        # Creates a nested dict for folder in rules_config
-        rules_config.update({folder: {}})
-        # Loop through the rulebase positioning
-        for position in ['pre', 'post']:
-            if rule_type == 'security':
-                rules = security.SecurityRule(
-                    folder=folder,
-                    position=position
-                )
-            if rule_type == 'auth':
-                rules = identity.AuthenticationRule(
-                    folder=folder,
-                    position=position
-                )
-            if rule_type == 'decrypt':
-                rules = security.DecryptionRule(
-                    folder=folder,
-                    position=position
-                )
-            response = rules.list(session)
-            # If the response was none, nothing is populated in the dict for that folder or position
-            if response is not None:
-                # Check if the response has items in a list or if the list is empty
-                if len(response) > 0:
-                    # Stage an empty list to hold object payload values
-                    rules_list = []
-                    for rule in response:
-                        # Check if the rule is actually contained in that specified folder, or in shared.
-                        if rule.folder == folder:
-                            # Cleanup from the output, _headers attribute is of no value for parsing
-                            delattr(rule, '_headers')
-                            # Add rule to the rules list
-                            rules_list.append(rule.payload)
-                    # Add all rules for folder and position to the dictionary
-                    rules_config[folder].update({position: rules_list})
-    return rules_config
 
 
 ############################################################
@@ -143,18 +96,26 @@ def cleanup_duplicate_rules(folders, rules):
     except Exception as e:
         raise e
 
-
-def get_configuration(session, folders):
+###############################################################
+# Extract all available configuration from Prisma Access Tenant
+###############################################################
+@click.command()
+@click.option('--folders', multiple=True, default=["Shared", "Service Connections",
+                                                   "Remote Networks", "Mobile Users", "Mobile Users Explicit Proxy"])
+@click.option('--filename', default='config.json')
+def get_configuration(folders, filename):
     """
 
     Args:
-        product_type: RN or MU
-        time_period: 30d, 90d, 365d
+        filename: Filename of the exported JSON configuration
+        folders: Prisma Access Folders to utilize for queries
+        session: SASE Authentication Token
     Returns:
 
     """
+    session = create_session()
     excluded_objects = ["Application", "Certificate"]
-    inspect_objects = [mobile, iam, objects, network, security, identity, subscription, tenancy]
+    inspect_objects = [mobile, iam, objects, network, security, identity, subscription]
     config = {'predefined': {}}
 
     def get_items(session, folder, key, obj):
@@ -171,7 +132,7 @@ def get_configuration(session, folders):
         predefined = []
         shared = []
 
-        def unpack_items(items):
+        def unpack_items(items, rule=False, sc=False, ba=False, mu=False):
             """Unpack the items from the API response.
 
             Args:
@@ -190,11 +151,15 @@ def get_configuration(session, folders):
                         logger.debug(f'Checking if {item} has a folder attribute')
                         if hasattr(item, 'folder'):
                             logger.debug(f'Checking if {item} folder is predefined')
-                            if item.folder == 'predefined':
-                                logger.debug(f'Determined {item} is predefined')
-                                predefined.append(item.payload)
+                            if item.folder in ["All", "Prisma Access", "predefined"]:
+                                logger.debug(f'Determined {item} is predefined because {item.folder} matches')
+                                if rule:
+                                    logger.debug(
+                                        f'Determined {item} is predefined default rule because {item.folder} matches')
+                                else:
+                                    predefined.append(item.payload)
                             elif item.folder == 'Shared':
-                                logger.debug(f'Determined {item} is shared')
+                                logger.debug(f'Determined {item} is shared because {item.folder} matches')
                                 shared.append(item.payload)
                             else:
                                 logger.debug(f'Determined {item} matches folder {folder}')
@@ -202,49 +167,71 @@ def get_configuration(session, folders):
                         else:
                             logger.debug(f'Determined {item} does not have a folder')
                             unpacked.append(item.payload)
-                            logger.info(f'Returning list of items for {items} that ARE Shared')
-                            return {'Shared': unpacked}
+                            if sc:
+                                return {'Service Connections': unpacked}
+                            elif ba:
+                                return {'Remote Networks': unpacked}
+                            elif mu:
+                                return {'Mobile Users': unpacked}
+                            else:
+                                logger.debug(f'Returning list of items for {items} that ARE Shared')
+                                return {'Shared': unpacked}
                 if len(unpacked) > 0:
-                    logger.info(f'Returning list of items for {items} that are NOT predefined')
+                    logger.debug(f'Returning list of items for {items} that are NOT predefined')
                     return {folder: unpacked}
                 if len(predefined) > 0:
-                    logger.info(f'Returning list of items for {items} that ARE predefined')
+                    logger.debug(f'Returning list of items for {items} that ARE predefined')
                     return {'predefined': predefined}
                 if len(shared) > 0:
-                    logger.info(f'Returning list of items for {items} that ARE Shared')
+                    logger.debug(f'Returning list of items for {items} that ARE Shared')
                     return {'Shared': shared}
 
         if hasattr(obj, '_position'):
-            for position in obj._position:
-                logger.info(f'Iterating for {key} at position: {position} in folder: {folder}')
+            unpacked_dict = {}
+            for idx, position in enumerate(obj._position):
+                logger.debug(f'Iterating for {key} at position: {position} in folder: {folder}')
                 items = obj(folder=folder, position=position)
                 item_list = items.list(session)
                 if item_list is not None:
-                    logger.warn(f'Unpacking items for {key} at position: {position}')
-                    unpacked = unpack_items(item_list)
-                    logger.warn(f'Unpacked items for {key} at position: {position}')
-                    # unpacked = {folder: {position: unpacked[folder]}}
+                    logger.debug(f'Unpacking items for {key} at position: {position}')
+                    unpacked = unpack_items(item_list, rule=True)
+                    logger.debug(f'Unpacked items for {key} at position: {position}')
+                    if folder == list(unpacked.keys())[0]:
+                        if folder in unpacked_dict:
+                            unpacked_dict[folder][position] = unpacked[folder]
+                        else:
+                            unpacked_dict[folder] = {position: unpacked[folder]}
                 else:
-                    logger.warn(f'Nothing to retrieve for {key} at position: {position}')
-                    unpacked = "Not Found"
-            return unpacked
-        elif hasattr(obj, '_no_folder'):
+                    logger.debug(f'Nothing to retrieve for {key} at position: {position}')
+            return unpacked_dict
+        if hasattr(obj, '_no_folder'):
             items = obj(no_folder=True)
             item_list = items.list(session)
             if item_list is not None:
                 unpacked = unpack_items(item_list)
                 return unpacked
             else:
-                logger.warn(f'Nothing to retrieve for {key} object passed with no folder')
+                logger.debug(f'Nothing to retrieve for {key} object passed with no folder')
                 return "Not Found"
         else:
+            mu_pinning = ["global_settings", "infrastructure_settings", "locations"]
             items = obj(folder=folder)
             item_list = items.list(session)
             if item_list is not None:
-                unpacked = unpack_items(item_list)
-                return unpacked
+                if key == "service_connections":
+                    unpacked = unpack_items(item_list, sc=True)
+                    return unpacked
+                elif key == "remote_networks":
+                    unpacked = unpack_items(item_list, ba=True)
+                    return unpacked
+                elif key in mu_pinning:
+                    unpacked = unpack_items(item_list, mu=True)
+                    return unpacked
+                else:
+                    unpacked = unpack_items(item_list)
+                    return unpacked
             else:
-                logger.warn(f'Nothing to retrieve for {key} object passed')
+                logger.debug(f'Nothing to retrieve for {key} object passed')
                 return "Not Found"
 
     def match_folder(folder, items={}):
@@ -283,12 +270,18 @@ def get_configuration(session, folders):
                                     items = get_items(session, folder, key_name, obj)
                                     if match_folder(folder, items):
                                         config[folder][section].update({key_name: items[folder]})
+                                    elif match_folder('predefined', items):
+                                        if key_name not in config['predefined'][section]:
+                                            config['predefined'][section].update({key_name: items['predefined']})
+                                        else:
+                                            continue
+                                    elif match_folder('Shared', items):
+                                        if key_name not in config['Shared'][section] and items is not None:
+                                            config['Shared'][section].update({key_name: items['Shared']})
+                                        else:
+                                            continue
                                     else:
-                                        if match_folder('predefined', items):
-                                            if key_name not in config['predefined'][section]:
-                                                config['predefined'][section].update({key_name: items['predefined']})
-                                            else:
-                                                continue
+                                        continue
                             else:
                                 logger.info(f'Getting non required items for: {key_name}')
                                 items = get_items(session, folder, key_name, obj)
@@ -308,7 +301,8 @@ def get_configuration(session, folders):
         # Cleanup empty dicts
         config = {key: {inner_key: inner_value for inner_key, inner_value in value.items()
                         if bool(inner_value)} for key, value in config.items()}
-        return config
+        # return config
+        generate_json_file(filename, config)
 
     except Exception as e:
         logger.critical(f'Failed to acquire configuration with error: {e}')
@@ -370,3 +364,16 @@ def generate_csv_rules(folders, rules_dict, type, suffix):
                         new_csv.close()
     except Exception as e:
         raise e
+
+
+def cleanup():
+    os.kill(os.getpid(), signal.SIGINT)
+
+
+if __name__ == '__main__':
+    try:
+        get_configuration()
+        atexit.register(cleanup)
+    except Exception as e:
+        print(e)
+        sys.exit(1)
