@@ -106,10 +106,10 @@ A CLI has been added to this project, all CLI arguments have defaults set, howev
 
 #### CLI Options
 
-| Option     | Default                                                                      |
-|------------|------------------------------------------------------------------------------|
-| --folders  | ["Shared", "Remote Networks", "Mobile Users", "Mobile Users Explicit Proxy"] |
-| --filename | "config.json"                                                                |
+| Option     | Default                                                                                              |
+|------------|------------------------------------------------------------------------------------------------------|
+| --folders  | ["Shared", "Service Connections", "Remote Networks", "Mobile Users", "Mobile Users Explicit Proxy"]  |
+| --filename | "config.json"                                                                                        |
 
 ```bash
 git clone https://github.com/ancoleman/prisma-access-config-exporter
