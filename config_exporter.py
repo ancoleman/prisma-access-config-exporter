@@ -16,6 +16,7 @@ from panapi.config import \
     objects, \
     network, \
     subscription, \
+    tenancy, \
     mobile
 
 __author__ = "Palo Alto Networks"
@@ -115,7 +116,7 @@ def get_configuration(folders, filename):
     """
     session = create_session()
     excluded_objects = ["Application", "Certificate"]
-    inspect_objects = [mobile, iam, objects, network, security, identity, subscription]
+    inspect_objects = [mobile, iam, objects, network, security, identity, subscription, tenancy]
     config = {'predefined': {}}
 
     def get_items(session, folder, key, obj):
