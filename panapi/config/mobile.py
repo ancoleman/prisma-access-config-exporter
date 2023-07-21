@@ -20,6 +20,7 @@ class AgentProfiles(PanObject):
 
 class GlobalSettings(PanObject):
     """A SASE Mobile-Agent Global Settings"""
+    _required = ['Mobile Users']
     _endpoint = f'{sase_path}/{api_version}/mobile-agent/global-settings'
 
 

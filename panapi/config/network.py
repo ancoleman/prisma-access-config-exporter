@@ -10,6 +10,7 @@ position = ['pre', 'post']
 
 class BandwidthAllocation(PanObject):
     """A bandwidth allocation"""
+    _required = ['Remote Networks']
     _endpoint = f'{sase_path}/{api_version}/bandwidth-allocations'
 
 

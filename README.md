@@ -102,41 +102,21 @@ token_url: https://auth.apps.paloaltonetworks.com/am/oauth2/access_token
 ```
 
 ### Example Usage
-Currently, no CLI has been added to this project, so all parameters need to be added to the script.
+A CLI has been added to this project, all CLI arguments have defaults set, however you can override those if you so choose.
 
-#### Paramters
-* folders = ['Shared', 'Remote Networks', 'Mobile Users', 'Mobile Users Explicit Proxy']
+#### CLI Options
 
-```
+| Option     | Default                                                                                              |
+|------------|------------------------------------------------------------------------------------------------------|
+| --folders  | ["Shared", "Service Connections", "Remote Networks", "Mobile Users", "Mobile Users Explicit Proxy"]  |
+| --filename | "config.json"                                                                                        |
+
+```bash
 git clone https://github.com/ancoleman/prisma-access-config-exporter
 cd prisma-access-config-exporter
 pip install -r requirements.txt
-```
 
-```python
-#Example from example.py
-import config_exporter
-import logging
-
-folders = ['Shared', 'Remote Networks', 'Mobile Users', 'Mobile Users Explicit Proxy']
-
-#################
-# Setup Logging
-#################
-logger = config_exporter.setup_logger('config_logger', 'config_exporter.log', file_level=logging.DEBUG,
-                                      stream_level=logging.INFO)
-config_exporter.logger = logger
-
-#################
-# Session
-#################
-session = config_exporter.create_session()
-
-#################
-# Generate Config
-#################
-config = config_exporter.get_configuration(session, folders)
-config_exporter.generate_json_file('config.json', config)
+python config_exporter.py --filename="yourconfig.json"
 ```
 
 
@@ -144,7 +124,9 @@ config_exporter.generate_json_file('config.json', config)
 
 
 * 0.1
-    * Initial Release
+  * Initial Release
+* 0.2
+  * Introduce CLI, additional bug fixes
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details
