@@ -93,6 +93,13 @@ class ServiceConnection(PanObject):
     _endpoint = f'{sase_path}/{api_version}/service-connections'
 
 
+class ServiceConnectionGroup(PanObject):
+    """Service Connections"""
+    _required = ['Service Connections']
+    _endpoint = f'{sase_path}/{api_version}/service-connection-groups'
+
+
+
 class InternalDNSServer(PanObject):
     """Internal DNS Servers"""
     _endpoint = f'{sase_path}/{api_version}/internal-dns-servers'
