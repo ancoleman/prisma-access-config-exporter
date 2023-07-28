@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  pa_export:
+    build: .
+    volumes:
+      - './resources:/app/resources'
+      - './config.yaml:/app/config.yaml'
+    entrypoint: ["./main.py"]
+    command:
+      - "--folders=Shared,Mobile Users,Remote Networks,Mobile Users Explicit Proxy,Service Connections"
+      - "--filename=config.json"
