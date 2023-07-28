@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import atexit
 import csv
 import inspect
@@ -47,7 +49,7 @@ def setup_logger(logger_name, log_file, file_level=logging.DEBUG, stream_level=l
     return l
 
 
-logger = setup_logger('config_logger', 'config_exporter.log', file_level=logging.DEBUG,
+logger = setup_logger('config_logger', '/app/resources/log/config_exporter.log', file_level=logging.DEBUG,
                       stream_level=logging.INFO)
 
 
@@ -69,42 +71,15 @@ def create_session():
         return f'Failed with exception: {e}'
 
 
-############################################################
-# Checks for matching rule IDs between positional rulebases
-############################################################
-def cleanup_duplicate_rules(folders, rules):
-    """
-        Args:
-            folders: List of Prisma Access folders to cycle through
-            rules: Dictionary of rules generated from the get_rules() function
-    """
-    try:
-        for folder in folders:
-            for position in ['pre', 'post']:
-                if position in rules[folder] and len(rules[folder][position]) > 0:
-                    if position == 'pre':
-                        post_rules = rules[folder].get('post', [])
-                        rules[folder]['post'] = [post_rule for post_rule in post_rules if
-                                                 post_rule['id'] not in [rule['id'] for rule in
-                                                                         rules[folder][position]]]
-                        # TODO Review logic for checking post rulebase duplicates, possibly remove if not necessary
-                        # if position == 'post':
-                        #     for rule in rules[folder][position]:
-                        #         if 'pre' in rules[folder]:
-                        #             for pre_rule in rules[folder]['post']:
-                        #                 if rule['id'] == pre_rule['id']:
-                        #                     rules[folder]['pre'].remove(pre_rule)
-    except Exception as e:
-        raise e
-
 ###############################################################
 # Extract all available configuration from Prisma Access Tenant
 ###############################################################
 @click.command()
-@click.option('--folders', multiple=True, default=["Shared", "Service Connections",
-                                                   "Remote Networks", "Mobile Users", "Mobile Users Explicit Proxy"])
+@click.option('--folders', multiple=True, default=["Shared,Service Connections,Mobile Users,"
+                                                   "Mobile Users Explicit Proxy,Remote Networks"])
 @click.option('--filename', default='config.json')
-def get_configuration(folders, filename):
+@click.option('--docker', default=True)
+def get_configuration(folders, filename, docker):
     """
 
     Args:
@@ -118,6 +93,9 @@ def get_configuration(folders, filename):
     excluded_objects = ["Application", "Certificate"]
     inspect_objects = [mobile, iam, objects, network, security, identity, subscription, tenancy]
     config = {'predefined': {}}
+
+    if docker:
+        filename = f'/app/resources/config/{filename}'
 
     def get_items(session, folder, key, obj):
         """Get the items from the API endpoint.
@@ -248,6 +226,11 @@ def get_configuration(folders, filename):
             return False
 
     try:
+        if not isinstance(folders, list):
+
+            folders = (''.join(map(str, folders))).split(",")
+            logger.debug(f'Convert click option to list: {folders}')
+
         for folder in folders:
             logger.info(f'Updating configuration for folder: {folder}')
             config.update({folder: {}})
@@ -319,11 +302,14 @@ def generate_json_file(filename, rules):
             filename: the actual filename to generate for json
             rules: Dictionary of rules generated from the get_rules() function
     """
+    logger.info('Saving configuration as json....')
     try:
         with open(filename, 'w') as f:
             # Convert dictionary to JSON
             json.dump(rules, f, indent=4)
+        logger.info('Finished exporting to json')
     except Exception as e:
+        logger.error(f'Failed to save the json file with error: {e}')
         raise e
 
 

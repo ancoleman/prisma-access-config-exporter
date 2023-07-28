@@ -78,6 +78,7 @@ class QoSProfile(PanObject):
 class RemoteNetwork(PanObject):
     """A SASE remote network"""
     _required = ['Remote Networks']
+    _rate_limit = True
     _endpoint = f'{sase_path}/{api_version}/remote-networks'
 
 

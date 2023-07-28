@@ -19,7 +19,7 @@ Additionally, the utility can export all folder rulebases into CSV.
 
 
 ### Requirements
-* Python 3.9+
+* Docker Desktop 4.19+
 * OAUTH Service Account Credentials file
 
 ### Currently Tested and Supported Configuration Output Items
@@ -91,7 +91,7 @@ Additionally, the utility can export all folder rulebases into CSV.
 You can assign it more permissive roles, but it's not required for the export.
 
 #### Example Credentials config.yaml
-Create the config.yaml file in the root directory.
+Create the config.yaml **root** project directory. This file will be mounted to a docker container as a volume. If you update the file, it will be updated in realtime on the container.
 ```yaml
 ---
 scope: profile tsg_id:YOURTENANTID email
@@ -102,23 +102,30 @@ token_url: https://auth.apps.paloaltonetworks.com/am/oauth2/access_token
 ```
 
 ### Example Usage
-A CLI has been added to this project, all CLI arguments have defaults set, however you can override those if you so choose.
+A CLI has been added to this project, all CLI arguments have defaults set, however you can override those if you so choose. The cli commands are passed through using **docker compose run**.
 
 #### CLI Options
 
-| Option     | Default                                                                                              |
-|------------|------------------------------------------------------------------------------------------------------|
-| --folders  | ["Shared", "Service Connections", "Remote Networks", "Mobile Users", "Mobile Users Explicit Proxy"]  |
-| --filename | "config.json"                                                                                        |
+| Option     | Default                                                                               |
+|------------|---------------------------------------------------------------------------------------|
+| --folders  | "Shared,Service Connections,Remote Networks,Mobile Users,Mobile Users Explicit Proxy" |
+| --filename | "config.json"                                                                         |
 
 ```bash
 git clone https://github.com/ancoleman/prisma-access-config-exporter
 cd prisma-access-config-exporter
-pip install -r requirements.txt
-
-python config_exporter.py --filename="yourconfig.json"
+docker compose build
+docker compose run pa_export
 ```
 
+If you want to use the CLI options here is an example:
+```bash
+docker compose run pa_export --filename=customer1.json --folders="Shared,Mobile Users"
+```
+
+Files will be generated in:
+* resources/config - The JSON configuration file will be stored here.
+* resources/log - The audit/debug logs will be stored here.
 
 ## Version History
 
@@ -127,6 +134,8 @@ python config_exporter.py --filename="yourconfig.json"
   * Initial Release
 * 0.2
   * Introduce CLI, additional bug fixes
+* 0.3
+  * Package CLI with docker compose
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details
