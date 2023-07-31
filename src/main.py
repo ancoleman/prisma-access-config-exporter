@@ -146,18 +146,19 @@ def get_configuration(folders, filename, docker):
                         else:
                             logger.debug(f'Determined {item} does not have a folder')
                             unpacked.append(item.payload)
-                            if sc:
-                                return {'Service Connections': unpacked}
-                            elif ba:
-                                return {'Remote Networks': unpacked}
-                            elif mu:
-                                return {'Mobile Users': unpacked}
-                            else:
-                                logger.debug(f'Returning list of items for {items} that ARE Shared')
-                                return {'Shared': unpacked}
+
                 if len(unpacked) > 0:
                     logger.debug(f'Returning list of items for {items} that are NOT predefined')
-                    return {folder: unpacked}
+                    if sc:
+                        return {'Service Connections': unpacked}
+                    elif ba:
+                        return {'Remote Networks': unpacked}
+                    elif mu:
+                        return {'Mobile Users': unpacked}
+                    else:
+                        # logger.debug(f'Returning list of items for {items} that ARE Shared')
+                        # return {'Shared': unpacked}
+                        return {folder: unpacked}
                 if len(predefined) > 0:
                     logger.debug(f'Returning list of items for {items} that ARE predefined')
                     return {'predefined': predefined}
